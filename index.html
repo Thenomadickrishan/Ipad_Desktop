@@ -580,215 +580,47 @@
 </div>
 
 <script>
-    /* ===== AUTH / SESSION CONFIG ===== */
-    const AUTH_LOCAL_PASSWORD = "Jhakrishan2411";
-    const AUTH_REMOTE_URL = ""; // Optional JSON endpoint; leave empty to use local password only
+    /* ===== AUTH ===== */
+  const AUTH_LOCAL_PASSWORD = "Jhakrishan2411";
+  const AUTH_REMOTE_URL = "";
+  const AUTH_SESSION_TTL_MS = 12 * 60 * 60 * 1000;
+  const AUTH_SESSION_KEY = "jpEnAuthSession_v1";
 
-    // Inactivity-based session: 02 minutes total, show warning in the last 60 seconds
-    const INACTIVITY_LIMIT_MS = 02 * 60 * 1000; // 02 minutes
-    const WARNING_WINDOW_MS = 60 * 1000;        // Last minute countdown
-    const AUTH_SESSION_KEY = "jpEnAuthSession_v2"; // Use a new key to avoid conflicts
-    const storage = sessionStorage;               // Use sessionStorage so closing the tab requires password again
-
-    /* ===== APP VISIBILITY ===== */
-    function setAppVisible(on) {
-      document.getElementById('app').style.display = on ? '' : 'none';
-      document.getElementById('authGate').style.display = on ? 'none' : '';
-      if (!on) hideWarning();
-    }
-
-    /* ===== SESSION HELPERS ===== */
-    function saveSession() {
-      storage.setItem(AUTH_SESSION_KEY, JSON.stringify({ exp: Date.now() + INACTIVITY_LIMIT_MS }));
-    }
-
-    function getSessionObj() {
-      try {
-        const raw = storage.getItem(AUTH_SESSION_KEY);
-        if (!raw) return null;
-        return JSON.parse(raw);
-      } catch {
-        return null;
-      }
-    }
-
-    function hasValidSession() {
-      const obj = getSessionObj();
-      return !!(obj && obj.exp && Date.now() < obj.exp);
-    }
-
-    function bumpSession() {
-      if (!hasValidSession()) return;
-      storage.setItem(AUTH_SESSION_KEY, JSON.stringify({ exp: Date.now() + INACTIVITY_LIMIT_MS }));
-      hideWarning();
-    }
-
-    function logout() {
-      clearTimers();
-      storage.removeItem(AUTH_SESSION_KEY);
-      document.getElementById('authPass').value = '';
-      setAppVisible(false);
-    }
-
-    /* ===== PASSWORD CHECKING ===== */
-    async function sha256Hex(str) {
-      const enc = new TextEncoder().encode(str);
-      const buf = await crypto.subtle.digest("SHA-256", enc);
-      return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
-    }
-
-    async function checkRemotePassword(input) {
-      if (!AUTH_REMOTE_URL) return null; // null means "no remote check performed"
-      try {
-        const res = await fetch(AUTH_REMOTE_URL, { cache: "no-store" });
-        if (!res.ok) return null;
-        const data = await res.json();
-        const inputHash = await sha256Hex(input);
-
-        if (Array.isArray(data.allowed) && data.allowed.includes(input)) return true;
-        if (Array.isArray(data.allowedHashes) && data.allowedHashes.includes(inputHash)) return true;
-        if (typeof data.password === 'string' && input === data.password) return true;
-        if (typeof data.hash === 'string' && inputHash === data.hash.toLowerCase()) return true;
-        return false;
-      } catch {
-        return null;
-      }
-    }
-
-    async function attemptAuth() {
-      const pass = (document.getElementById('authPass').value || '').trim();
-      const err = document.getElementById('authError');
-      err.style.display = 'none';
-
-      let ok = null;
-      if (AUTH_REMOTE_URL) ok = await checkRemotePassword(pass);
-      if (ok === null) ok = (pass === AUTH_LOCAL_PASSWORD);
-
-      if (ok) {
-        saveSession();
-        setAppVisible(true);
-        appInitOnce();
-        scheduleTimers();
-      } else {
-        err.style.display = '';
-      }
-    }
-
-    /* ===== INACTIVITY / COUNTDOWN MANAGEMENT ===== */
-    let warningTimer = null;
-    let logoutTimer = null;
-    let countdownInterval = null;
-
-    function clearTimers() {
-      if (warningTimer) { clearTimeout(warningTimer); warningTimer = null; }
-      if (logoutTimer) { clearTimeout(logoutTimer); logoutTimer = null; }
-      if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
-    }
-
-    function showWarning() {
-      const overlay = document.getElementById('sessionWarning');
-      overlay.style.display = 'flex';
-      startCountdown();
-    }
-
-    function hideWarning() {
-      const overlay = document.getElementById('sessionWarning');
-      overlay.style.display = 'none';
-      if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
-    }
-
-    function startCountdown() {
-      const label = document.getElementById('sessionCountdown');
-      if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
-      countdownInterval = setInterval(() => {
-        const obj = getSessionObj();
-        const remaining = obj ? (obj.exp - Date.now()) : 0;
-        const seconds = Math.max(0, Math.ceil(remaining / 1000));
-        label.textContent = String(seconds);
-        if (remaining <= 0) {
-          clearInterval(countdownInterval);
-          countdownInterval = null;
-        }
-      }, 1000);
-    }
-
-    function scheduleTimers() {
-      clearTimers();
-      const obj = getSessionObj();
-      if (!obj) return;
-
-      const now = Date.now();
-      const remaining = obj.exp - now;
-
-      if (remaining <= 0) {
-        // Already expired
-        logout();
-        return;
-      }
-
-      if (remaining <= WARNING_WINDOW_MS) {
-        // Show the warning immediately
-        showWarning();
-        logoutTimer = setTimeout(logout, remaining);
-      } else {
-        // Schedule the warning and the logout
-        warningTimer = setTimeout(showWarning, remaining - WARNING_WINDOW_MS);
-        logoutTimer = setTimeout(logout, remaining);
-      }
-    }
-
-    // User activity listener to reset inactivity timer
-    let lastBumpTs = 0;
-    function onUserActivity() {
-      if (!hasValidSession()) return;
-      const now = Date.now();
-      // Throttle bumps to avoid excessive writes
-      if (now - lastBumpTs < 1000) return;
-      lastBumpTs = now;
-      bumpSession();
-      scheduleTimers();
-    }
-
-    /* ===== APP INIT STUB ===== */
-    let appDidInit = false;
-    function appInitOnce() {
-      if (appDidInit) return;
-      appDidInit = true;
-      // Place any one-time app initialization here
-    }
-
-    /* ===== EVENT WIRING ===== */
-    document.getElementById('authBtn').addEventListener('click', attemptAuth);
-    document.getElementById('authPass').addEventListener('keydown', (e) => { if (e.key === 'Enter') attemptAuth(); });
-    document.getElementById('logoutBtn').addEventListener('click', logout);
-    document.getElementById('staySignedInBtn').addEventListener('click', () => {
-      onUserActivity(); // Treat as activity to extend session
-      hideWarning();
-    });
-
-    // Inactivity detection events
-    ['mousemove','mousedown','keydown','touchstart','scroll'].forEach(evt => {
-      window.addEventListener(evt, onUserActivity, { passive: true });
-    });
-
-    // If the tab becomes visible again and session is still valid, refresh timers
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible' && hasValidSession()) {
-        scheduleTimers();
-      }
-    });
-
-    // On load, restore session if present (sessionStorage survives reloads, but not tab closes)
-    window.addEventListener('load', () => {
-      if (hasValidSession()) {
-        setAppVisible(true);
-        appInitOnce();
-        scheduleTimers();
-      } else {
-        setAppVisible(false);
-      }
-    });
-
+  function setAppVisible(on){
+    document.getElementById('app').style.display = on ? '' : 'none';
+    document.getElementById('authGate').style.display = on ? 'none' : '';
+  }
+  function saveSession(){ localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify({ exp: Date.now() + AUTH_SESSION_TTL_MS })); }
+  function hasValidSession(){
+    try { const raw = localStorage.getItem(AUTH_SESSION_KEY); if (!raw) return false; const obj = JSON.parse(raw); return obj && obj.exp && Date.now() < obj.exp; } catch { return false; }
+  }
+  async function sha256Hex(str){ const enc = new TextEncoder().encode(str); const buf = await crypto.subtle.digest("SHA-256", enc); return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join(''); }
+  async function checkRemotePassword(input){
+    if (!AUTH_REMOTE_URL) return null;
+    try {
+      const res = await fetch(AUTH_REMOTE_URL, { cache: "no-store" });
+      if (!res.ok) return null;
+      const data = await res.json();
+      const inputHash = await sha256Hex(input);
+      if (Array.isArray(data.allowed) && data.allowed.includes(input)) return true;
+      if (Array.isArray(data.allowedHashes) && data.allowedHashes.includes(inputHash)) return true;
+      if (typeof data.password === 'string' && input === data.password) return true;
+      if (typeof data.hash === 'string' && inputHash === data.hash.toLowerCase()) return true;
+      return false;
+    } catch { return null; }
+  }
+  async function attemptAuth(){
+    const pass = (document.getElementById('authPass').value || '').trim();
+    const err = document.getElementById('authError'); err.style.display = 'none';
+    let ok = null; if (AUTH_REMOTE_URL) ok = await checkRemotePassword(pass);
+    if (ok === null) ok = (pass === AUTH_LOCAL_PASSWORD);
+    if (ok) { saveSession(); setAppVisible(true); appInitOnce(); } else { err.style.display = ''; }
+  }
+  function logout(){ localStorage.removeItem(AUTH_SESSION_KEY); document.getElementById('authPass').value = ''; setAppVisible(false); }
+  document.getElementById('authBtn').addEventListener('click', attemptAuth);
+  document.getElementById('authPass').addEventListener('keydown', (e) => { if (e.key === 'Enter') attemptAuth(); });
+  document.getElementById('logoutBtn').addEventListener('click', logout);
+  window.addEventListener('load', () => { if (hasValidSession()) { setAppVisible(true); appInitOnce(); } else { setAppVisible(false); } })
   /* ===== Utilities ===== */
   function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
@@ -2856,4 +2688,5 @@
 </body>
 
 </html>
+
 
