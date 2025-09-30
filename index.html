@@ -75,10 +75,10 @@
   .quiz-head, .learn-head{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:10px 12px; background:linear-gradient(90deg, rgba(109,131,242,0.12), rgba(34,197,220,0.10)); border:1px solid var(--border); border-radius:12px }
   .timer{font-weight:900; color:#2563eb}
   .question{ margin-top:14px; padding:12px; border:1px dashed var(--border); border-radius:14px; background:linear-gradient(180deg, #ffffff, #f8fbff) }
-  .qtitle{font-size:16px; font-weight:900}
+  .qtitle{font-size:20px; font-weight:700; white-space:nowrap} /* keep question on one row */
   .kana{color:#1e3a8a; font-weight:800; margin-left:8px}
   .choices{display:grid; gap:10px; margin-top:10px; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)) }
-  .choice{ display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:12px; background:var(--chip); border:1px solid var(--border); color:#0f172a; font-weight:800; transition: transform .06s ease, background .1s ease, border-color .1s ease, box-shadow .1s ease }
+  .choice{ display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:12px; background:var(--chip); border:1px solid var(--border); color:#0f172a; font-weight:600; transition: transform .06s ease, background .1s ease, border-color .1s ease, box-shadow .1s ease }
   .choice:hover{ transform: translateY(-1px); background:var(--chip-h); box-shadow:0 2px 10px rgba(99,102,241,.08) }
   .choice .dot{ width:18px; height:18px; border-radius:50%; border:3px solid #94a3b8; background:transparent; flex:0 0 auto }
   .choice.active{ border-color:var(--chip-sel); box-shadow:0 0 0 2px rgba(56,189,248,0.25) inset }
@@ -139,9 +139,37 @@
   .auth-row input{ flex:1; min-width:0 }
   .auth-error{ display:none; color:#b91c1c; background:#fee2e2; border:1px solid #fecaca; padding:6px 10px; border-radius:10px; font-weight:800; margin-top:10px }
   .auth-footer{ margin-top:12px; color:#64748b; font-size:12px }
+
+  /* Session warning overlay */
+  #sessionWarning{
+    position:fixed; inset:0; background:rgba(0,0,0,0.5);
+    display:none; align-items:center; justify-content:center; z-index:9999;
+  }
+  #sessionWarning .warn-modal{
+    background:#fff; border:1px solid var(--border); border-radius:12px;
+    padding:16px; box-shadow:var(--shadow);
+    max-width:420px; width:calc(100% - 40px); text-align:center;
+  }
+  #sessionWarning .warn-modal h3{ margin:0 0 8px 0; font-weight:900; }
+  #sessionWarning .warn-modal p{ margin:0 0 10px 0; color:var(--text); }
+
+  /* Hide Romaji toggling in quiz areas */
+  #quizarea.hide-romaji .romaji,
+  #megaQuizarea.hide-romaji .romaji { display:none; }
+
+  /* Inline romaji and kana in question (one row) */
+  .qtitle .romaji { display:inline; font-size:22px; font-weight:700; margin-left:8px; }
+  .qtitle .kana  { display:inline; font-size:20px; font-weight:700; color:#1e3a8a; margin-left:6px; }
+  .qtitle .romaji strong { font-weight:inherit; }
+
+ /* FIXED: Romaji + Kana inline in options */
+  .choice .romaji { display:inline; font-size:18px; font-weight:600; margin-right:6px; }
+  .choice .kana  { display:inline; font-size:18px; font-weight:700; color:#1e3a8a; }
+  .choice .romaji strong { font-weight:inherit; }
 </style>
 </head>
 <body>
+
 
 <!-- AUTH -->
 <div id="authGate">
@@ -157,6 +185,7 @@
     <div class="auth-footer">Protected by Krishan Kumar Jha • You may be asked again after a while for security.</div>
   </div>
 </div>
+
 
 <!-- APP -->
 <div id="app" style="display:none">
@@ -175,6 +204,7 @@
     </div>
   </header>
 
+
   <main>
     <div class="tabs">
       <button id="tabLearn" class="tab-btn active">Learn Vocab</button>
@@ -184,6 +214,7 @@
       <button id="tabKata" class="tab-btn">Learn Katakana</button>
       <button id="tabKanaQuiz" class="tab-btn">Kana Quiz</button>
     </div>
+
 
     <!-- LEARN Vocab -->
     <section id="panelLearn">
@@ -208,12 +239,14 @@
         </div>
       </div>
 
+
       <div id="learnStudyArea" style="display:none">
         <div class="panel">
           <div class="learn-head">
             <span class="pill">Learn</span>
             <span>Block <span id="learnBlockNum">1</span> / 10</span>
             <span class="info-chip">Items on page: <span id="learnPageCount">0</span></span>
+
 
             <div class="pager">
               <span><strong>Page</strong></span>
@@ -224,6 +257,7 @@
               <button id="learnBackBtn" class="btn-sec">Back to Selector</button>
             </div>
           </div>
+
 
           <div class="study-card">
             <div class="study-title" id="learnPrompt">word</div>
@@ -242,6 +276,7 @@
             <div class="muted" style="margin-top:6px">Progress: <span id="learnProgressText">0 / 0</span></div>
           </div>
 
+
           <div class="flex" style="margin-top:10px">
             <label><input type="checkbox" id="filterStarred" /> <span class="label-inline">Starred only</span></label>
             <label><input type="checkbox" id="filterUnknown" /> <span class="label-inline">Unknown only</span></label>
@@ -252,10 +287,12 @@
             <button id="btnResetFilters" class="btn-ghost">Reset Filters</button>
           </div>
 
+
           <div class="learn-list" id="learnList"></div>
         </div>
       </div>
     </section>
+
 
     <!-- TAKE QUIZ (WORDS) -->
     <section id="panelQuiz" style="display:none">
@@ -277,7 +314,9 @@
           <div class="footer">Words are divided into 10 equal quizzes; question order reshuffles on start.</div>
         </div>
 
+
         <div class="grid" id="quizGrid"></div>
+
 
         <div class="panel">
           <h3 class="chart-title">Stats (Filtered by current Direction + Options)</h3>
@@ -301,12 +340,17 @@
         </div>
       </div>
 
+
       <div id="quizarea" style="display:none">
         <div class="panel">
           <div class="quiz-head">
             <span class="pill" id="pillDir">JP → EN</span>
             <span>Quiz <span id="pillQuizNum">1</span> / 10</span>
             <span>Elapsed: <span class="timer" id="timer">0.0s</span></span>
+            <label style="margin-left:auto; display:flex; align-items:center; gap:6px; font-weight:700;">
+              <input type="checkbox" id="quizHideRomaji" />
+              <span>Hide Romaji</span>
+            </label>
           </div>
           <div id="questions"></div>
           <div class="flex" style="margin-top:10px">
@@ -316,6 +360,7 @@
           <div class="footer">Single-answer MCQ. Synonyms exist; one is picked as the correct label, and shown in review.</div>
         </div>
       </div>
+
 
       <div id="resultarea" style="display:none">
         <div class="panel">
@@ -331,6 +376,7 @@
         </div>
       </div>
     </section>
+
 
     <!-- MEGA QUIZ (WORDS) -->
     <section id="panelMega" style="display:none">
@@ -352,7 +398,9 @@
           <div class="footer">Each Mega Quiz has 50 questions from cumulative blocks (1; 1+2; ...; 1–10).</div>
         </div>
 
+
         <div class="grid" id="megaQuizGrid"></div>
+
 
         <div class="panel">
           <h3 class="chart-title">Stats (Filtered by current Direction + Options)</h3>
@@ -376,12 +424,17 @@
         </div>
       </div>
 
+
       <div id="megaQuizarea" style="display:none">
         <div class="panel">
           <div class="quiz-head">
             <span class="pill" id="megaPillDir">JP → EN</span>
             <span>Mega Quiz <span id="megaPillQuizNum">1</span> / 10</span>
             <span>Elapsed: <span class="timer" id="megaTimer">0.0s</span></span>
+            <label style="margin-left:auto; display:flex; align-items:center; gap:6px; font-weight:700;">
+              <input type="checkbox" id="megaHideRomaji" />
+              <span>Hide Romaji</span>
+            </label>
           </div>
           <div id="megaQuestions"></div>
           <div class="flex" style="margin-top:10px">
@@ -391,6 +444,7 @@
           <div class="footer">Single-answer MCQ. Synonyms exist; one is picked as the correct label, and shown in review.</div>
         </div>
       </div>
+
 
       <div id="megaResultarea" style="display:none">
         <div class="panel">
@@ -407,6 +461,7 @@
       </div>
     </section>
 
+
     <!-- LEARN HIRAGANA (Enhanced like Learn Words) -->
     <section id="panelHira" style="display:none">
       <div class="panel">
@@ -421,6 +476,7 @@
             <input id="hiraSearch" type="text" placeholder="Search romaji or kana..." />
           </label>
         </div>
+
 
         <div class="study-card">
           <div class="study-title" id="hiraStudyTitle">—</div>
@@ -438,6 +494,7 @@
           <div class="muted" style="margin-top:6px">Progress: <span id="hiraProgressText">0 / 0</span></div>
         </div>
 
+
         <div class="flex" style="margin-top:10px">
           <label><input type="checkbox" id="hiraFilterStarred" /> <span class="label-inline">Starred only</span></label>
           <label><input type="checkbox" id="hiraFilterUnknown" /> <span class="label-inline">Unknown only</span></label>
@@ -448,9 +505,11 @@
           <button id="hiraResetFilters" class="btn-ghost">Reset Filters</button>
         </div>
 
+
         <div id="hiraLearnList" class="learn-list" style="margin-top:10px"></div>
       </div>
     </section>
+
 
     <!-- LEARN KATAKANA (Enhanced like Learn Words) -->
     <section id="panelKata" style="display:none">
@@ -466,6 +525,7 @@
             <input id="kataSearch" type="text" placeholder="Search romaji or kana..." />
           </label>
         </div>
+
 
         <div class="study-card">
           <div class="study-title" id="kataStudyTitle">—</div>
@@ -483,6 +543,7 @@
           <div class="muted" style="margin-top:6px">Progress: <span id="kataProgressText">0 / 0</span></div>
         </div>
 
+
         <div class="flex" style="margin-top:10px">
           <label><input type="checkbox" id="kataFilterStarred" /> <span class="label-inline">Starred only</span></label>
           <label><input type="checkbox" id="kataFilterUnknown" /> <span class="label-inline">Unknown only</span></label>
@@ -493,9 +554,11 @@
           <button id="kataResetFilters" class="btn-ghost">Reset Filters</button>
         </div>
 
+
         <div id="kataLearnList" class="learn-list" style="margin-top:10px"></div>
       </div>
     </section>
+
 
     <!-- KANA QUIZ -->
     <section id="panelKanaQuiz" style="display:none">
@@ -531,6 +594,7 @@
         </div>
       </div>
 
+
       <div id="kanaQuizArea" style="display:none">
         <div class="panel">
           <div class="quiz-head">
@@ -546,6 +610,7 @@
         </div>
       </div>
 
+
       <div id="kanaResultArea" style="display:none">
         <div class="panel">
           <h3>Kana Results</h3>
@@ -558,6 +623,7 @@
           </div>
         </div>
       </div>
+
 
       <div class="panel">
         <h3 class="chart-title">Kana Stats (Filtered by current Direction + Script + Options)</h3>
@@ -579,8 +645,18 @@
   </main>
 </div>
 
+<!-- Session warning / countdown overlay -->
+<div id="sessionWarning">
+  <div class="warn-modal">
+    <h3>Session Expiring Soon</h3>
+    <p>Your session will expire due to inactivity in <strong><span id="sessionCountdown">60</span></strong> seconds.</p>
+    <button id="staySignedInBtn" class="btn-sec">Continue Session</button>
+  </div>
+</div>
+
+
 <script>
-    /* ===== AUTH ===== */
+  /* ===== AUTH ===== */
   const AUTH_LOCAL_PASSWORD = "Jhakrishan2411";
   const AUTH_REMOTE_URL = "";
   const AUTH_SESSION_TTL_MS = 12 * 60 * 60 * 1000;
@@ -620,9 +696,11 @@
   document.getElementById('authBtn').addEventListener('click', attemptAuth);
   document.getElementById('authPass').addEventListener('keydown', (e) => { if (e.key === 'Enter') attemptAuth(); });
   document.getElementById('logoutBtn').addEventListener('click', logout);
-  window.addEventListener('load', () => { if (hasValidSession()) { setAppVisible(true); appInitOnce(); } else { setAppVisible(false); } })
+  window.addEventListener('load', () => { if (hasValidSession()) { setAppVisible(true); appInitOnce(); } else { setAppVisible(false); } });
+
   /* ===== Utilities ===== */
   function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
 
   // Romaji -> Kana conversion (for displaying kana with words)
   const VOWELS = new Set(['a','i','u','e','o']);
@@ -701,7 +779,12 @@
     return false;
   }
   function preferredKana(romaji, enHintsText){ const hira = romajiToHiragana(romaji); return isKatakanaPreferred(romaji, enHintsText) ? hiraganaToKatakana(hira) : hira; }
-  function formatJPInlineSmart(romaji, enHintsText){ const r = escapeHtml(romaji); const kana = preferredKana(romaji, enHintsText); return `<strong>${r}</strong> <span class="kana">【${escapeHtml(kana)}】</span>`; }
+  function formatJPInlineSmart(romaji, enHintsText){
+    const r = escapeHtml(romaji);
+    const kana = preferredKana(romaji, enHintsText);
+    return `<span class="romaji"><strong>${r}</strong></span> <span class="kana">【${escapeHtml(kana)}】</span>`;
+  }
+
 
   /* ===== WORD LIST ===== */
   const wordListRaw = `
@@ -1285,6 +1368,7 @@
 "wareru,to break"
 `;
 
+
   // Parse list
   function parseWordList(text) {
     const out = [];
@@ -1307,6 +1391,7 @@
   function normalizeJP(s) { return s.toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g, '').replace(/[~\-–—'"!?,.:;(){}$]/g, '').replace(/\s+/g, ''); }
   function normalizeEN(s) { return s.toLowerCase().replace(/[“”"‘’']/g, '').replace(/[!?,.:;(){}$-]/g, '').replace(/^\s*\b(to|a|an|the)\b\s+/g, '').replace(/\s+/g, '').trim(); }
 
+
   const parsed = parseWordList(wordListRaw);
   const jpMap = new Map(); // jpNorm -> { jpDisplay, enDisplayList[], enNormSet:Set }
   for (const { jp, en } of parsed) {
@@ -1321,16 +1406,22 @@
       rec.enNormSet.add(enNorm);
     }
   }
-  const items = Array.from(jpMap.values());
+
+  // Build items list in alphabetical order (by romaji jpDisplay)
+  let items = Array.from(jpMap.values());
+  items.sort((a, b) => a.jpDisplay.localeCompare(b.jpDisplay, 'en', { sensitivity: 'base' }));
+
   const enPoolMap = new Map();
   for (const it of items) for (const enStr of it.enDisplayList) { const norm = normalizeEN(enStr); if (!enPoolMap.has(norm)) enPoolMap.set(norm, enStr); }
   const enPoolUnique = Array.from(enPoolMap.values());
   const jpDisplayMap = new Map(items.map(it => [it.jpDisplay, it]));
 
+
   function shuffle(arr){ for (let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]] } return arr; }
   function sample(arr, n){ const idxs=[...Array(arr.length).keys()]; shuffle(idxs); const out=[]; for(const i of idxs){ out.push(arr[i]); if(out.length>=n) break;} return out; }
   function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
   function pickNWithReplacement(indexes, n){ if (indexes.length>=n) return sample(indexes, n); const out=[]; if (!indexes.length) return out; while(out.length<n) out.push(indexes[Math.floor(Math.random()*indexes.length)]); return out; }
+
 
   /* ===== Words: blocks and tabs ===== */
   let quizSets = [];
@@ -1349,6 +1440,7 @@
     }
   }
 
+
   function setActiveTab(name){
     const isLearn = (name==='learn');
     const isQuiz  = (name==='quiz');
@@ -1363,6 +1455,7 @@
     document.getElementById('tabKata').classList.toggle('active', isKata);
     document.getElementById('tabKanaQuiz').classList.toggle('active', isKanaQ);
 
+
     document.getElementById('panelLearn').style.display = isLearn ? '' : 'none';
     document.getElementById('panelQuiz').style.display  = isQuiz  ? '' : 'none';
     document.getElementById('panelMega').style.display  = isMega  ? '' : 'none';
@@ -1370,12 +1463,14 @@
     document.getElementById('panelKata').style.display  = isKata  ? '' : 'none';
     document.getElementById('panelKanaQuiz').style.display = isKanaQ ? '' : 'none';
 
+
     if (isQuiz)  loadStatsFiltered();
     if (isMega)  loadMegaStatsFiltered();
     if (isHira)  renderHiraLearn();
     if (isKata)  renderKataLearn();
     if (isKanaQ) { loadKanaStatsFiltered(); renderKanaChartsFiltered(); }
   }
+
 
   /* ===== Take Quiz (words) ===== */
   let activeQuizIndex = 0;
@@ -1385,11 +1480,13 @@
   let quizStartTime = 0;
   let timerHandle = null;
 
+
   function previewItems(indexes, limit = 3) {
     if (!indexes.length) return '(empty)';
     const picks = sample(indexes, Math.min(limit, indexes.length)).map(i => items[i].jpDisplay);
     return picks.join(', ');
   }
+
 
   function generateTenQuizzes() {
     activeDirection = document.getElementById('direction').value;
@@ -1400,6 +1497,7 @@
     updateStatsFilterInfo();
     loadStatsFiltered();
   }
+
 
   function renderQuizGrid() {
     const grid = document.getElementById('quizGrid');
@@ -1428,6 +1526,7 @@
       grid.appendChild(card);
     });
   }
+
 
   function buildQuestion(it, direction, optN) {
     if (direction === 'jp-en') {
@@ -1458,6 +1557,7 @@
     });
   }
 
+
   function startQuiz(i) {
     activeQuizIndex = i;
     activeDirection = document.getElementById('direction').value;
@@ -1477,6 +1577,7 @@
     quizStartTime = performance.now();
     startTimer();
   }
+
 
   function renderQuestions() {
     const wrap = document.getElementById('questions');
@@ -1509,6 +1610,7 @@
     });
   }
 
+
   function startTimer() {
     if (timerHandle) clearInterval(timerHandle);
     const el = document.getElementById('timer');
@@ -1518,6 +1620,7 @@
     }, 100);
   }
   function stopTimer() { if (timerHandle) clearInterval(timerHandle); timerHandle = null; }
+
 
   document.getElementById('questions').addEventListener('click', (e) => {
     const choice = e.target.closest('.choice');
@@ -1529,6 +1632,7 @@
     container.querySelectorAll('.choice').forEach(el => el.classList.remove('active'));
     choice.classList.add('active');
   });
+
 
   function submitQuiz() {
     document.getElementById('submitBtn').disabled = true;
@@ -1559,6 +1663,7 @@
     loadStatsFiltered();
     document.getElementById('submitBtn').disabled = false;
   }
+
 
   function renderReview() {
     const container = document.getElementById('review');
@@ -1596,12 +1701,14 @@
     });
   }
 
+
   function cancelQuiz() {
     stopTimer();
     document.getElementById('quizarea').style.display = 'none';
     document.getElementById('resultarea').style.display = 'none';
     document.getElementById('menu').style.display = '';
   }
+
 
   // Stats (filtered by direction + options)
   const STATS_KEY = 'jpEnQuizStats_mcq_v3_equalBlocks_kana_auto_optDir';
@@ -1610,6 +1717,7 @@
   }
   function saveAttempt(attempt) { const arr = getStats(); arr.push(attempt); localStorage.setItem(STATS_KEY, JSON.stringify(arr)); }
   function summarize(list) { if (!list.length) return { count:0, avgScore:0, avgTime:0, avgPct:0 }; const c=list.length; const sumScore=list.reduce((a,b)=>a+(b.score||0),0); const sumTime=list.reduce((a,b)=>a+(b.timeSec||0),0); const sumPct=list.reduce((a,b)=>a+((b.score||0)/(b.questions||1)*100),0); return { count:c, avgScore:sumScore/c, avgTime:sumTime/c, avgPct:sumPct/c }; }
+
 
   function updateStatsFilterInfo(){
     const dir = document.getElementById('direction').value;
@@ -1625,6 +1733,7 @@
     const lines = rows.map(r=> `Q${r.quiz}: ${r.s.count} tries, Avg ${r.s.avgPct.toFixed(1)}%, ${r.s.avgTime.toFixed(1)}s`);
     return `<p class="muted">${lines.join(' • ')}</p>`;
   }
+
 
   // Charts core
   function prepCanvas(canvas) {
@@ -1644,7 +1753,9 @@
   }
   function drawAxes(ctx, x, y, w, h) {
     ctx.save(); ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1.5; ctx.beginPath();
-    ctx.moveTo(x, y); ctx.lineTo(x, y + h); ctx.moveTo(x, y + h); ctx.lineTo(x + w, y + h); ctx.stroke(); ctx.restore();
+    ctx.moveTo(x, y); ctx.lineTo(x, y + h);
+    ctx.moveTo(x, y + h); ctx.lineTo(x + w, y + h);
+    ctx.stroke(); ctx.restore();
   }
   function colorToRgba(hex, a) { const r=parseInt(hex.slice(1,3),16), g=parseInt(hex.slice(3,5),16), b=parseInt(hex.slice(5,7),16); return `rgba(${r},${g},${b},${a})`; }
   function drawLineSeries(ctx, x, y, w, h, values, color) {
@@ -1686,6 +1797,7 @@
     ctx.restore();
   }
 
+
   function renderChartsFiltered(attempts, overallId, byQuizId, quizKey, labelPrefix){
     const canvas1 = document.getElementById(overallId);
     const canvas2 = document.getElementById(byQuizId);
@@ -1718,6 +1830,7 @@
     c2.restore();
   }
 
+
   function loadStatsFiltered(){
     const arrAll = getStats();
     const dir = document.getElementById('direction').value;
@@ -1735,10 +1848,12 @@
     renderChartsFiltered(arr, 'chartOverall', 'chartByQuiz', 'quizIndex', 'Q');
   }
 
+
   // Learn paged (words)
   const PAGES_PER_BLOCK = 5;
   function getPageSizeForBlock(blockIdx){ const len = quizSets[blockIdx]?.length ?? 0; return Math.max(1, Math.ceil(len / PAGES_PER_BLOCK)); }
   function getPageSlice(blockIdx, pageNum){ const block = quizSets[blockIdx] || []; const pageSize = getPageSizeForBlock(blockIdx); const start = (pageNum - 1) * pageSize; const end = Math.min(start + pageSize, block.length); return block.slice(start, end); }
+
 
   const STARS_KEY = 'jpEnLearnStars_v1';
   const KNOWN_KEY = 'jpEnLearnKnown_v1';
@@ -1747,7 +1862,9 @@
   let starSet = loadSet(STARS_KEY);
   let knownSet = loadSet(KNOWN_KEY);
 
+
   let learnState = { blockIndex:0, page:1, orderIdxs:[], cursor:0, hideEnglish:false, shuffle:false, filterStarred:false, filterUnknown:false, searchBlock:'' };
+
 
   function populateLearnBlockSelect(){
     const sel = document.getElementById('learnBlockSelect');
@@ -1769,6 +1886,7 @@
     meta.textContent = `Block size: ${set.length} • Preview: ${previewItems(set)}`;
   }
 
+
   function openLearnBlock(blockIdx){
     learnState.blockIndex = blockIdx;
     learnState.page = 1; learnState.cursor = 0; learnState.hideEnglish = false; learnState.shuffle = false; learnState.filterStarred = false; learnState.filterUnknown = false; learnState.searchBlock = '';
@@ -1781,6 +1899,7 @@
     scrollToTop();
   }
 
+
   function updateLearnHead(){
     document.getElementById('learnBlockNum').textContent = (learnState.blockIndex + 1).toString();
     const pageSelect = document.getElementById('learnPageSelect');
@@ -1788,6 +1907,7 @@
     const pageItems = getPageSlice(learnState.blockIndex, learnState.page).length;
     document.getElementById('learnPageCount').textContent = String(pageItems);
   }
+
 
   function applyLearnFilters(){
     let idxs = getPageSlice(learnState.blockIndex, learnState.page);
@@ -1855,6 +1975,7 @@
       wrap.appendChild(row);
     });
   }
+
 
   // Learn controls
   document.getElementById('btnPrev').addEventListener('click', () => {
@@ -1928,6 +2049,7 @@
     }
   });
 
+
   document.getElementById('learnBlockSelect').addEventListener('change', updateLearnBlockMeta);
   document.getElementById('openBlockBtn').addEventListener('click', () => {
     const b = parseInt(document.getElementById('learnBlockSelect').value || '0', 10);
@@ -1940,6 +2062,7 @@
   document.getElementById('learnNextPageBtn').addEventListener('click', () => {
     learnState.page = (learnState.page % PAGES_PER_BLOCK) + 1; learnState.cursor = 0; updateLearnHead(); applyLearnFilters(); renderLearnStudy(); renderLearnList();
   });
+
 
   // Global search
   function getPageSizeForBlock(blockIdx){ const len = quizSets[blockIdx]?.length ?? 0; return Math.max(1, Math.ceil(len / PAGES_PER_BLOCK)); }
@@ -1975,6 +2098,7 @@
     document.getElementById('learnGlobalSearch').value = '';
   });
 
+
   // Speech
   let voices = [];
   function loadVoices(){ voices = window.speechSynthesis ? window.speechSynthesis.getVoices() : []; }
@@ -1998,6 +2122,7 @@
     speak(it.enDisplayList.join(' / '), 'en-US');
   });
 
+
   // Tabs
   document.getElementById('tabLearn').addEventListener('click', () => setActiveTab('learn'));
   document.getElementById('tabQuiz').addEventListener('click', () => setActiveTab('quiz'));
@@ -2005,6 +2130,7 @@
   document.getElementById('tabHira').addEventListener('click', () => setActiveTab('hira'));
   document.getElementById('tabKata').addEventListener('click', () => setActiveTab('kata'));
   document.getElementById('tabKanaQuiz').addEventListener('click', () => setActiveTab('kanaq'));
+
 
   // Quiz (words) events
   document.getElementById('regenBtn').addEventListener('click', generateTenQuizzes);
@@ -2039,6 +2165,7 @@
     };
     reader.readAsText(f);
   });
+
 
   // ===== MEGA QUIZ =====
   let megaQuizSets = [];
@@ -2085,12 +2212,14 @@
     });
   }
 
+
   let activeMegaQuizIndex = 0;
   let activeMegaDirection = 'jp-en';
   let megaOptCount = 4;
   let activeMegaQuestions = [];
   let megaQuizStartTime = 0;
   let megaTimerHandle = null;
+
 
   function startMegaQuiz(i) {
     activeMegaQuizIndex = i;
@@ -2148,6 +2277,7 @@
     choice.classList.add('active');
   });
 
+
   function submitMegaQuiz() {
     document.getElementById('megaSubmitBtn').disabled = true;
     stopMegaTimer();
@@ -2173,6 +2303,7 @@
     loadMegaStatsFiltered();
     document.getElementById('megaSubmitBtn').disabled = false;
   }
+
 
   function renderMegaReview() {
     const container = document.getElementById('megaReview');
@@ -2203,7 +2334,9 @@
     });
   }
 
+
   function cancelMegaQuiz() { stopMegaTimer(); document.getElementById('megaQuizarea').style.display = 'none'; document.getElementById('megaResultarea').style.display = 'none'; document.getElementById('megaMenu').style.display = ''; }
+
 
   const MEGA_STATS_KEY = 'jpEnMegaQuizStats_mcq_v2_cumulative_kana_auto_optDir';
   function getMegaStats() { try { const raw=localStorage.getItem(MEGA_STATS_KEY); if(!raw) return []; const arr=JSON.parse(raw); return Array.isArray(arr)?arr:[] } catch { return [] } }
@@ -2234,6 +2367,7 @@
     statsDiv.innerHTML = html;
     renderChartsFiltered(arr, 'megaChartOverall', 'megaChartByQuiz', 'megaQuizIndex', 'MQ');
   }
+
 
   document.getElementById('megaGenBtn').addEventListener('click', generateTenMegaQuizzes);
   document.getElementById('megaGenBtn2').addEventListener('click', () => {
@@ -2268,6 +2402,7 @@
     reader.readAsText(f);
   });
 
+
   // ===== Learn Hiragana & Katakana (Enhanced like Learn Words) =====
   function buildKanaEntries(includeDakuten, includeHandakuten){
     const entries = [];
@@ -2300,16 +2435,19 @@
     return entries;
   }
 
+
   // Kana learn states and storage
   const KANA_STARS_KEY = 'jpKanaStars_v1';
   const KANA_KNOWN_KEY = 'jpKanaKnown_v1';
   let kanaStarSet = loadSet(KANA_STARS_KEY);
   let kanaKnownSet = loadSet(KANA_KNOWN_KEY);
 
+
   const kanaStates = {
     hira: { entries: [], orderIdxs: [], cursor: 0, hideRomaji: false, shuffle: false, filterStarred: false, filterUnknown: false, globalSearch: '', pageSearch: '', includeDakuten:false, includeHandakuten:false },
     kata: { entries: [], orderIdxs: [], cursor: 0, hideRomaji: false, shuffle: false, filterStarred: false, filterUnknown: false, globalSearch: '', pageSearch: '', includeDakuten:false, includeHandakuten:false },
   };
+
 
   function buildKanaViewEntries(script, includeDakuten, includeHandakuten, globalQ){
     const base = buildKanaEntries(includeDakuten, includeHandakuten);
@@ -2414,6 +2552,7 @@
   function renderHiraLearn(){ kanaRebuild('hira'); }
   function renderKataLearn(){ kanaRebuild('kata'); }
 
+
   function initKanaUI(script){
     const p = script==='hira'?'hira':'kata';
     // Controls
@@ -2495,6 +2634,7 @@
     document.getElementById(p+'Search').addEventListener('input', () => kanaRebuild(script));
   }
 
+
   // ===== Kana Quiz =====
   let kanaActiveQuestions = [];
   let kanaStartTime = 0;
@@ -2533,6 +2673,7 @@
   }
   function stopKanaTimer(){ if (kanaTimerHandle) clearInterval(kanaTimerHandle); kanaTimerHandle=null; }
 
+
   function updateKanaStatsFilterInfo(){
     const dir = document.getElementById('kanaDirection').value;
     const script = document.getElementById('kanaQuizScript').value;
@@ -2541,6 +2682,7 @@
     const scriptLabel = script==='hira'?'Hiragana':(script==='kata'?'Katakana':'Both');
     document.getElementById('kanaStatsFilterInfo').textContent = `Stats filter: ${dirLabel} • ${scriptLabel} • ${opt} options`;
   }
+
 
   document.getElementById('kanaGenBtn').addEventListener('click', () => {
     const dir = document.getElementById('kanaDirection').value;
@@ -2631,6 +2773,7 @@
     document.getElementById('kanaResultArea').style.display='none'; document.getElementById('kanaQuizArea').style.display='none';
   });
 
+
   function loadKanaStatsFiltered(){
     const arrAll = getKanaStats();
     const dir = document.getElementById('kanaDirection').value;
@@ -2665,6 +2808,7 @@
     drawLineSeries(ctx, pad.l, pad.t, width - pad.l - pad.r, height - pad.t - pad.b, values, '#0ea5e9');
   }
 
+
   // Resize: rerender charts for current filters
   window.addEventListener('resize', () => {
     renderChartsFiltered(getStats().filter(a => a.direction === document.getElementById('direction').value && a.optCount === clamp(parseInt(document.getElementById('optCount').value)||4,3,6)), 'chartOverall', 'chartByQuiz', 'quizIndex', 'Q');
@@ -2672,7 +2816,9 @@
     renderKanaChartsFiltered();
   });
 
+
   function scrollToTop(){ window.scrollTo({top:0, behavior:'smooth'}); }
+
 
   let inited = false;
   function appInit(){
@@ -2684,9 +2830,14 @@
     setActiveTab('learn');
   }
   function appInitOnce(){ if (inited) return; inited = true; appInit(); }
+
+  // Hide/Show Romaji toggles for Vocab Quiz and Mega Quiz
+  document.getElementById('quizHideRomaji').addEventListener('change', (e) => {
+    document.getElementById('quizarea').classList.toggle('hide-romaji', e.target.checked);
+  });
+  document.getElementById('megaHideRomaji').addEventListener('change', (e) => {
+    document.getElementById('megaQuizarea').classList.toggle('hide-romaji', e.target.checked);
+  });
 </script>
 </body>
-
 </html>
-
-
